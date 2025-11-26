@@ -12,12 +12,13 @@
 import pandas as pd
 import yfinance as yf
 import numpy as np
+from ta.momentum import RSIIndicator
 
 def main():
     
     # Get Apple's stock data for past month
     apple = yf.Ticker("AAPL")
-    prices = apple.history(period="2mo")
+    prices = apple.history(period="1y")
 
     # New dataframe with features and label
     df = pd.DataFrame(prices)
@@ -33,6 +34,9 @@ def main():
         start += 1; stop += 1
 
     df["ma"] = pd.Series(ma_dict)
+
+    # Feature engineering: RSI feature
+    df["RSI"] = RSIIndicator(df["Close"], 14, False).rsi()
 
 if __name__ == "__main__":
     main()
