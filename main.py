@@ -11,13 +11,28 @@
 
 import pandas as pd
 import yfinance as yf
+import numpy as np
 
 def main():
     
+    # Get Apple's stock data for past month
     apple = yf.Ticker("AAPL")
+    prices = apple.history(period="2mo")
 
-    prices = apple.history(period="5y")
+    # New dataframe with features and label
+    df = pd.DataFrame(prices)
 
-    print(prices.tail())
+    # Feature engineering: 5 day moving averages
+    start, stop = 0, 4
+    ma_dict = {}
+    while stop < len(df["Close"]):
+        window = df["Close"].iloc[start:stop]
+        index = df["Close"].index[stop]
+        avg = np.mean(window)
+        ma_dict.update({index: int(avg)})
+        start += 1; stop += 1
+
+    df["ma"] = pd.Series(ma_dict)
+
 if __name__ == "__main__":
     main()
