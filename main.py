@@ -37,5 +37,13 @@ def main():
     # Feature engineering: RSI feature
     df["RSI"] = RSIIndicator(df["Close"], 14, False).rsi()
 
+    # Feature engineering: Next days closing price (target)
+    nc_dict = {}
+    for i in range(0, len(df["Close"]) - 1):
+        key = df["Close"].index[i + 1]
+        value = df["Close"].iloc[i + 1]
+        nc_dict.update({key: int(value)})
+    df["NextClose"] = pd.Series(nc_dict)
+
 if __name__ == "__main__":
     main()
