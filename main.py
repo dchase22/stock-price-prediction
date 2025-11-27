@@ -13,40 +13,44 @@ import pandas as pd
 import yfinance as yf
 import numpy as np
 from ta.momentum import RSIIndicator
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
 
 def main():
     
     # Get Apple's stock data for past month
     apple = yf.Ticker("AAPL")
-    prices = apple.history(period="3y")
+    prices = apple.history(period="5y")
 
     # New dataframe with features and label
     df = pd.DataFrame(prices)
 
-    # Feature engineering: 10 day moving averages
-    start, stop = 0, 10
-    ma_dict = {}
-    while stop < len(df["Close"]):
-        window = df["Close"].iloc[start:stop]
-        index = df["Close"].index[stop]
-        avg = np.mean(window)
-        ma_dict.update({index: avg})
-        start += 1; stop += 1
-    df["ma"] = pd.Series(ma_dict)
+    # Feature engineering: Remove un-important columns for prediction
+    df = df.drop(["Dividends", "Stock Splits", "Volume"], axis=1)
 
-    # Feature engineering: RSI feature
-    df["RSI"] = RSIIndicator(df["Close"], 14, False).rsi()
+    # Feature engineering: 10 day moving averages
+    df["MA"] = df["Close"].rolling(window=10).mean()
 
     # Feature engineering: Next days closing price (target)
-    nc_dict = {}
-    for i in range(0, len(df["Close"]) - 2):
-        key = df["Close"].index[i + 2]
-        value = df["Close"].iloc[i + 1]
-        nc_dict.update({key: value})
-    df["NextClose"] = pd.Series(nc_dict)
+    df["NextClose"] = df["Close"].shift(-1)
 
     # Clean data: Get rid of rows with empty vals
     df.dropna(inplace=True)
 
+    # Split train and test data maintaining chronological order
+    X = df.drop("NextClose", axis=1)
+    y = df["NextClose"]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
+
+    # Instantiate and train model
+    model = RandomForestRegressor(n_estimators=300, n_jobs=-1)
+    model.fit(X_train, y_train)
+
+    # Test model
+    y_pred = model.predict(X_test)
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+    print(f"RMSE: {rmse}")
+        
 if __name__ == "__main__":
     main()
