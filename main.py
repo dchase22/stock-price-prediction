@@ -30,7 +30,7 @@ def main():
         window = df["Close"].iloc[start:stop]
         index = df["Close"].index[stop]
         avg = np.mean(window)
-        ma_dict.update({index: int(avg)})
+        ma_dict.update({index: avg})
         start += 1; stop += 1
     df["ma"] = pd.Series(ma_dict)
 
@@ -39,11 +39,16 @@ def main():
 
     # Feature engineering: Next days closing price (target)
     nc_dict = {}
-    for i in range(0, len(df["Close"]) - 1):
-        key = df["Close"].index[i + 1]
+    for i in range(0, len(df["Close"]) - 2):
+        key = df["Close"].index[i + 2]
         value = df["Close"].iloc[i + 1]
-        nc_dict.update({key: int(value)})
+        nc_dict.update({key: value})
     df["NextClose"] = pd.Series(nc_dict)
+
+    # Clean data: Get rid of rows with empty vals
+    df.dropna(inplace=True)
+
+
 
 if __name__ == "__main__":
     main()
