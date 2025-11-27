@@ -18,13 +18,13 @@ def main():
     
     # Get Apple's stock data for past month
     apple = yf.Ticker("AAPL")
-    prices = apple.history(period="1y")
+    prices = apple.history(period="3y")
 
     # New dataframe with features and label
     df = pd.DataFrame(prices)
 
-    # Feature engineering: 5 day moving averages
-    start, stop = 0, 4
+    # Feature engineering: 10 day moving averages
+    start, stop = 0, 10
     ma_dict = {}
     while stop < len(df["Close"]):
         window = df["Close"].iloc[start:stop]
@@ -32,7 +32,6 @@ def main():
         avg = np.mean(window)
         ma_dict.update({index: int(avg)})
         start += 1; stop += 1
-
     df["ma"] = pd.Series(ma_dict)
 
     # Feature engineering: RSI feature
