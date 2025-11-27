@@ -48,7 +48,5 @@ def main():
     # Clean data: Get rid of rows with empty vals
     df.dropna(inplace=True)
 
-
-
 if __name__ == "__main__":
     main()
